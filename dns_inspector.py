@@ -34,7 +34,6 @@ def sendquery(self, packet, num):
         endt = time.time() #record end time
         print(f'Response received after {(endt-startt)} seconds ({num} retries)')
         sock.close() #close socket
-        #do shit with socketresponse
         response = setoutput(socketresponse)
 
         print(f"***Answer Section ({num} records)***")
@@ -54,14 +53,12 @@ def sendquery(self, packet, num):
 
 
 def setinput(args):
-    #id, flags, question, answer, authority, additional
     packet = struct.pack('>HHHHHH', random.getrandbits(16), 0x0100, 0x0001, 0x0000, 0x0000, 0x0000)
     for i in args.name.split('.'):
         packet += struct.pack('B', len(i))
         for j in i:
             packet += struct.pack('c', j.encode('utf-8'))
     packet += struct.pack('B', 0)
-    #type of query
     if args.mx:
         packet += struct.pack('>H', 0x000F)
     elif args.ns:
@@ -73,7 +70,6 @@ def setinput(args):
 
 def setoutput(args):
     response = {}
-    #header
     header = {}
     id, flags, qdcount, ancount, nscount, arcount = struct.Struct('!6H').unpack_from(args)
     header['id'] = id
@@ -81,17 +77,7 @@ def setoutput(args):
     header['ancount'] = ancount
     header['nscount'] = nscount
     header['arcount'] = arcount
-    #headers QR
-    #headers opcode
-    #headers AA
-    #headers TC
-    #headers RD
-    #headers RA
-    #headers Z
-    #headers Rcode
     
-
-
 
 
 
@@ -100,7 +86,6 @@ def setoutput(args):
     response['header'] = header
     return response
 
-#maybe change some descriptions
 def parse():
     parser = argparse.ArgumentParser(description='Use this command line tool to query a DNS server')
     parser.add_argument("-t", "--timeout", nargs='?', type=int, default=5,
@@ -123,10 +108,8 @@ def parse():
                         action='store', dest='name')
     return parser.parse_args()
 
-# how to input: -t 10 -r 2 -p 10 -mx @8.8.8.8 mcgill.ca
-#minimum: s @8.8.8.8 -n mcgill.ca
+
 params = parse()
-# do shit with params
 client = DnsClient(params)
 packet = setinput(params)
 sendquery(client, packet, 1)
